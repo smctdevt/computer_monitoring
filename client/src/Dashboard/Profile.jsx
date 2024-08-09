@@ -10,10 +10,11 @@ import SideBar from "./Sidebar";
 import { LazyLoadImage } from "react-lazy-load-image-component";
 import "react-lazy-load-image-component/src/effects/blur.css";
 
-const SearchableDropdown = ({ options, placeholder, onSelect }) => {
+const SearchableDropdown = ({ options, placeholder, onSelect, userData }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredOptions, setFilteredOptions] = useState([]);
   const [isOpen, setIsOpen] = useState(false);
+  const [user, setUser] = useState(null);
   const dropdownRef = useRef(null);
 
   useEffect(() => {
@@ -61,30 +62,18 @@ const SearchableDropdown = ({ options, placeholder, onSelect }) => {
     onSelect(option);
     setIsOpen(false);
   };
-  const [user, setUser] = useState(null);
 
   useEffect(() => {
     const fetchUserProfile = async () => {
       try {
-        const token = localStorage.getItem("token");
-        if (!token) {
-          return;
-        }
-
-        const response = await axios.get("/api/profile", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        setUser(response.data);
+        setUser(userData);
       } catch (error) {
         console.error("Error fetching user profile:", error);
       }
     };
 
     fetchUserProfile();
-  }, []);
+  }, [userData]);
 
   useEffect(() => {
     if (user && user.data.branch_code.branch_name) {
@@ -172,6 +161,7 @@ function Placeholder({ onSubmit }) {
           newPassword: "",
           newPassword_confirmation: "",
         });
+        setUser(response.data);
       } catch (error) {
         console.error("Error fetching user profile:", error);
       }
@@ -238,6 +228,7 @@ function Placeholder({ onSubmit }) {
       });
       if (response.data.status === true) {
         setPreview(
+          // `http://localhost:8000/${response.data.data.profile_picture}`
           `https://desstrongmotors.com/monitoringback/${response.data.data.profile_picture}`
         );
         const Toast = Swal.mixin({
@@ -446,6 +437,7 @@ function Placeholder({ onSubmit }) {
           </div>
         </div>
         <SearchableDropdown
+          userData={user}
           options={options}
           name="branch_code_id"
           id="branch_code_id"
